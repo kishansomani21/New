@@ -57,29 +57,39 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Path to Python script
-    const scriptPath = path.join(process.cwd(), 'automation', 'vt_automation.py');
-    const pythonPath = process.env.PYTHON_PATH || 'python';
+    // Check if we should use remote mode (Windows server)
+    const remoteServerUrl = process.env.VT_REMOTE_SERVER_URL;
 
-    // Build command
-    let args: string[];
-    if (body.command) {
-      // Natural language command
-      args = [scriptPath, body.command];
+    if (remoteServerUrl) {
+      // Remote mode: Call Windows server
+      console.log('Using remote VT server:', remoteServerUrl);
+      const result = await callRemoteVTServer(remoteServerUrl, body);
+      return NextResponse.json(result);
     } else {
-      // Structured data - convert to command format
-      const command = `create invoice to ${body.customer_name} for £${body.amount}${
-        body.description ? ` description: ${body.description}` : ''
-      }`;
-      args = [scriptPath, command];
+      // Local mode: Run Python script directly (only works if on Windows)
+      const scriptPath = path.join(process.cwd(), 'automation', 'vt_automation.py');
+      const pythonPath = process.env.PYTHON_PATH || 'python';
+
+      // Build command
+      let args: string[];
+      if (body.command) {
+        // Natural language command
+        args = [scriptPath, body.command];
+      } else {
+        // Structured data - convert to command format
+        const command = `create invoice to ${body.customer_name} for £${body.amount}${
+          body.description ? ` description: ${body.description}` : ''
+        }`;
+        args = [scriptPath, command];
+      }
+
+      console.log('Executing Python script:', pythonPath, args);
+
+      // Execute Python script
+      const result = await executePythonScript(pythonPath, args);
+
+      return NextResponse.json(result);
     }
-
-    console.log('Executing Python script:', pythonPath, args);
-
-    // Execute Python script
-    const result = await executePythonScript(pythonPath, args);
-
-    return NextResponse.json(result);
   } catch (error) {
     console.error('Error in VT invoice API:', error);
     return NextResponse.json(
@@ -137,36 +147,76 @@ function executePythonScript(
 }
 
 /**
+ * Call remote VT server running on Windows
+ */
+async function callRemoteVTServer(
+  serverUrl: string,
+  body: InvoiceRequest
+): Promise<InvoiceResult> {
+  try {
+    const response = await fetch(`${serverUrl}/create-invoice`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Remote server error: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw new Error(
+      `Failed to connect to remote VT server: ${
+        error instanceof Error ? error.message : 'Unknown error'
+      }`
+    );
+  }
+}
+
+/**
  * GET endpoint to check VT connection status
  */
 export async function GET(request: NextRequest) {
   try {
-    const scriptPath = path.join(process.cwd(), 'automation', 'vt_automation.py');
-    const pythonPath = process.env.PYTHON_PATH || 'python';
+    const remoteServerUrl = process.env.VT_REMOTE_SERVER_URL;
 
-    const python = spawn(pythonPath, [scriptPath, '--test-connection']);
+    if (remoteServerUrl) {
+      // Check remote server
+      const response = await fetch(`${remoteServerUrl}/test-connection`);
+      const data = await response.json();
+      return NextResponse.json(data);
+    } else {
+      // Check local Python script
+      const scriptPath = path.join(process.cwd(), 'automation', 'vt_automation.py');
+      const pythonPath = process.env.PYTHON_PATH || 'python';
 
-    let stdout = '';
-    let stderr = '';
+      const python = spawn(pythonPath, [scriptPath, '--test-connection']);
 
-    python.stdout.on('data', (data) => {
-      stdout += data.toString();
-    });
+      let stdout = '';
+      let stderr = '';
 
-    python.stderr.on('data', (data) => {
-      stderr += data.toString();
-    });
-
-    return new Promise((resolve) => {
-      python.on('close', (code) => {
-        resolve(
-          NextResponse.json({
-            connected: code === 0,
-            message: stdout.trim() || stderr.trim() || 'Connection test completed',
-          })
-        );
+      python.stdout.on('data', (data) => {
+        stdout += data.toString();
       });
-    });
+
+      python.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+
+      return new Promise((resolve) => {
+        python.on('close', (code) => {
+          resolve(
+            NextResponse.json({
+              connected: code === 0,
+              message: stdout.trim() || stderr.trim() || 'Connection test completed',
+            })
+          );
+        });
+      });
+    }
   } catch (error) {
     return NextResponse.json(
       {

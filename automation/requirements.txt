@@ -5,3 +5,7 @@ pyautogui>=0.9.54
 pywinauto>=0.6.8
 Pillow>=10.0.0
 opencv-python>=4.8.0
+
+# For remote server mode (optional)
+flask>=3.0.0
+flask-cors>=4.0.0
