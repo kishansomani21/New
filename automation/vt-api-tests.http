@@ -1,0 +1,275 @@
+###
+# VT Transaction Plus API Test Collection
+#
+# Usage with VS Code REST Client extension:
+# 1. Install "REST Client" extension by Huachao Mao
+# 2. Open this file
+# 3. Click "Send Request" above each request
+#
+# Or use with curl by copying the commands
+###
+
+# Set base URL (change if needed)
+@baseUrl = http://localhost:3000/api
+@remoteServerUrl = http://localhost:5050
+
+###
+# Test 1: Check VT Connection Status
+# GET /api/vt-invoice
+# Expected: 200 OK with connection status
+GET {{baseUrl}}/vt-invoice
+Content-Type: application/json
+
+###
+# Test 2: Create Invoice - Natural Language (Simple)
+# POST /api/vt-invoice
+# Expected: 200 OK with success message
+POST {{baseUrl}}/vt-invoice
+Content-Type: application/json
+
+{
+  "command": "create invoice to GT Bar Services for £100"
+}
+
+###
+# Test 3: Create Invoice - Natural Language (With Description)
+# POST /api/vt-invoice
+# Expected: 200 OK with success message
+POST {{baseUrl}}/vt-invoice
+Content-Type: application/json
+
+{
+  "command": "invoice Acme Corp for £250.50 description: Consulting services"
+}
+
+###
+# Test 4: Create Invoice - Structured Data (Minimal)
+# POST /api/vt-invoice
+# Expected: 200 OK with success message
+POST {{baseUrl}}/vt-invoice
+Content-Type: application/json
+
+{
+  "customer_name": "GT Bar Services",
+  "amount": 100
+}
+
+###
+# Test 5: Create Invoice - Structured Data (Full)
+# POST /api/vt-invoice
+# Expected: 200 OK with success message
+POST {{baseUrl}}/vt-invoice
+Content-Type: application/json
+
+{
+  "customer_name": "Acme Corporation Ltd",
+  "amount": 450.75,
+  "description": "Website development and maintenance",
+  "vat_rate": 20,
+  "invoice_date": "07/11/2025"
+}
+
+###
+# Test 6: Error Case - Missing Required Fields
+# POST /api/vt-invoice
+# Expected: 400 Bad Request
+POST {{baseUrl}}/vt-invoice
+Content-Type: application/json
+
+{
+  "description": "This should fail"
+}
+
+###
+# Test 7: Error Case - Empty Command
+# POST /api/vt-invoice
+# Expected: Parsing error or 400
+POST {{baseUrl}}/vt-invoice
+Content-Type: application/json
+
+{
+  "command": ""
+}
+
+###
+# Test 8: Create Invoice - Small Amount (Test)
+# POST /api/vt-invoice
+# Use small amount for testing
+POST {{baseUrl}}/vt-invoice
+Content-Type: application/json
+
+{
+  "command": "create invoice to Test Customer for £0.01"
+}
+
+###
+# Test 9: Create Invoice - Alternative Syntax 1
+# POST /api/vt-invoice
+POST {{baseUrl}}/vt-invoice
+Content-Type: application/json
+
+{
+  "command": "bill John Smith for £75.25"
+}
+
+###
+# Test 10: Create Invoice - Alternative Syntax 2
+# POST /api/vt-invoice
+POST {{baseUrl}}/vt-invoice
+Content-Type: application/json
+
+{
+  "command": "create an invoice for ABC Ltd for £1200"
+}
+
+###
+# ===== REMOTE SERVER TESTS (Windows) =====
+# These tests target the Python Flask server directly
+###
+
+###
+# Remote Test 1: Health Check
+# GET /health
+# Expected: 200 OK with service info
+GET {{remoteServerUrl}}/health
+
+###
+# Remote Test 2: Test Connection
+# GET /test-connection
+# Expected: 200 OK with connection status
+GET {{remoteServerUrl}}/test-connection
+
+###
+# Remote Test 3: Create Invoice - Natural Language
+# POST /create-invoice
+POST {{remoteServerUrl}}/create-invoice
+Content-Type: application/json
+
+{
+  "command": "create invoice to GT Bar Services for £100"
+}
+
+###
+# Remote Test 4: Create Invoice - Structured Data
+# POST /create-invoice
+POST {{remoteServerUrl}}/create-invoice
+Content-Type: application/json
+
+{
+  "customer_name": "Remote Test Customer",
+  "amount": 150.50,
+  "description": "Remote server test"
+}
+
+###
+# ===== EDGE CASES & ERROR HANDLING =====
+###
+
+###
+# Edge Case 1: Very Long Customer Name
+POST {{baseUrl}}/vt-invoice
+Content-Type: application/json
+
+{
+  "customer_name": "This Is A Very Long Customer Name Limited Incorporated Company Association",
+  "amount": 100
+}
+
+###
+# Edge Case 2: Decimal Amount with Many Places
+POST {{baseUrl}}/vt-invoice
+Content-Type: application/json
+
+{
+  "customer_name": "Decimal Test",
+  "amount": 99.999
+}
+
+###
+# Edge Case 3: Large Amount
+POST {{baseUrl}}/vt-invoice
+Content-Type: application/json
+
+{
+  "customer_name": "Big Invoice Corp",
+  "amount": 999999.99
+}
+
+###
+# Edge Case 4: Zero VAT Rate
+POST {{baseUrl}}/vt-invoice
+Content-Type: application/json
+
+{
+  "customer_name": "Zero VAT Customer",
+  "amount": 100,
+  "vat_rate": 0
+}
+
+###
+# Edge Case 5: Custom VAT Rate
+POST {{baseUrl}}/vt-invoice
+Content-Type: application/json
+
+{
+  "customer_name": "Custom VAT Customer",
+  "amount": 100,
+  "vat_rate": 5
+}
+
+###
+# Edge Case 6: Special Characters in Customer Name
+POST {{baseUrl}}/vt-invoice
+Content-Type: application/json
+
+{
+  "customer_name": "O'Brien & Sons Ltd.",
+  "amount": 100,
+  "description": "Services (consulting & development)"
+}
+
+###
+# Edge Case 7: Very Long Description
+POST {{baseUrl}}/vt-invoice
+Content-Type: application/json
+
+{
+  "customer_name": "Description Test",
+  "amount": 100,
+  "description": "This is a very long description that includes multiple services: web development, database optimization, server maintenance, API integration, security audit, performance testing, code review, documentation, training, and ongoing support services for the entire year."
+}
+
+###
+# ===== PERFORMANCE TESTS =====
+###
+
+###
+# Performance Test: Multiple Sequential Requests
+# Run this 3 times in a row to test handling
+POST {{baseUrl}}/vt-invoice
+Content-Type: application/json
+
+{
+  "command": "create invoice to Performance Test {{$randomInt}} for £10"
+}
+
+###
+# ===== CURL EXAMPLES =====
+# Copy these commands to use with curl
+###
+
+# curl -X GET http://localhost:3000/api/vt-invoice
+
+# curl -X POST http://localhost:3000/api/vt-invoice \
+#   -H "Content-Type: application/json" \
+#   -d '{"command": "create invoice to GT Bar Services for £100"}'
+
+# curl -X POST http://localhost:3000/api/vt-invoice \
+#   -H "Content-Type: application/json" \
+#   -d '{
+#     "customer_name": "GT Bar Services",
+#     "amount": 100,
+#     "description": "Services rendered"
+#   }'
+
+###

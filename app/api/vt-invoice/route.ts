@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { spawn } from 'child_process';
 import path from 'path';
+import { validateInvoiceRequest, VTErrorMessages } from '@/types/vt-transaction';
+import type {
+  InvoiceRequest,
+  InvoiceResponse,
+  ConnectionStatusResponse
+} from '@/types/vt-transaction';
 
 /**
  * API endpoint to create invoices in VT Transaction Plus
@@ -21,15 +27,7 @@ import path from 'path';
  * }
  */
 
-interface InvoiceRequest {
-  command?: string;
-  customer_name?: string;
-  amount?: number;
-  description?: string;
-  vat_rate?: number;
-  invoice_date?: string;
-}
-
+// Legacy interface kept for backward compatibility
 interface InvoiceResult {
   success: boolean;
   message: string;
@@ -46,12 +44,14 @@ export async function POST(request: NextRequest) {
   try {
     const body: InvoiceRequest = await request.json();
 
-    // Validate request
-    if (!body.command && (!body.customer_name || !body.amount)) {
+    // Validate request using type-safe validation
+    const validation = validateInvoiceRequest(body);
+    if (!validation.valid) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Either "command" or "customer_name" and "amount" are required'
+          error: VTErrorMessages.MISSING_REQUIRED_FIELDS,
+          details: validation.errors
         },
         { status: 400 }
       );
