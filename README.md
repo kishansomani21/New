@@ -10,6 +10,7 @@ A beautiful, modern web application that connects your bank accounts to Google S
 - 🔐 **Bank-level Security** - OAuth 2.0 and encrypted connections
 - ⚡ **Real-time Sync** - Keep your spreadsheets up-to-date automatically
 - 🌍 **Global Coverage** - Thousands of banks across North America and Europe
+- 🤖 **VT Transaction Plus Automation** - Create invoices using natural language commands (NEW!)
 
 ## 🚀 Quick Start
 
@@ -19,6 +20,7 @@ A beautiful, modern web application that connects your bank accounts to Google S
 - npm or yarn package manager
 - Bank API credentials (Plaid, GoCardless, or TrueLayer)
 - Google Cloud Platform account with Sheets API enabled
+- (Optional) Python 3.8+ for VT Transaction Plus automation on Windows
 
 ### Installation
 
@@ -156,6 +158,53 @@ For production, change this to your deployed URL.
 - Each account can be synced independently
 - All transactions go to the same Google Sheet (or you can modify the code to use different sheets)
 
+### VT Transaction Plus Automation (Windows Only)
+
+**NEW!** Automate invoice creation in VT Transaction Plus using natural language commands!
+
+#### Quick Setup
+
+1. **Install Python dependencies**
+   ```bash
+   cd automation
+   pip install -r requirements.txt
+   ```
+
+2. **Test connection to VT Transaction Plus**
+   ```bash
+   python vt_automation.py --test-connection
+   ```
+
+3. **Calibrate UI positions**
+   ```bash
+   python vt_automation.py --calibrate
+   ```
+   Follow the prompts to record positions of buttons and fields.
+
+4. **Create invoices with natural language**
+
+   Via command line:
+   ```bash
+   python vt_automation.py "create invoice to GT Bar Services for £100"
+   ```
+
+   Or via the web dashboard at http://localhost:3000/dashboard
+
+#### Example Commands
+
+- `create an invoice to GT Bar Services for £100`
+- `invoice Acme Corp for £250.50`
+- `bill John Smith for £75.25 description: Consulting services`
+
+The system will automatically:
+- Parse your command
+- Open VT Transaction Plus
+- Click the SIN (Sales Invoice) button
+- Fill in customer, amount, and description
+- Save the invoice
+
+For detailed setup instructions, troubleshooting, and advanced usage, see [automation/README.md](automation/README.md)
+
 ## 🏗️ Project Structure
 
 ```
@@ -164,13 +213,20 @@ For production, change this to your deployed URL.
 │   │   ├── plaid/             # Plaid integration endpoints
 │   │   ├── gocardless/        # GoCardless integration endpoints
 │   │   ├── truelayer/         # TrueLayer integration endpoints
-│   │   └── sync-to-sheets/    # Google Sheets sync endpoint
+│   │   ├── sync-to-sheets/    # Google Sheets sync endpoint
+│   │   └── vt-invoice/        # VT Transaction Plus automation
 │   ├── dashboard/             # Dashboard page
 │   ├── globals.css            # Global styles
 │   ├── layout.tsx             # Root layout
 │   └── page.tsx               # Landing page
 ├── components/
-│   └── PlaidLink.tsx          # Plaid Link component
+│   ├── PlaidLink.tsx          # Plaid Link component
+│   └── VTInvoiceCreator.tsx   # VT invoice automation UI
+├── automation/
+│   ├── vt_automation.py       # Desktop automation script
+│   ├── vt_config.json         # Configuration file
+│   ├── requirements.txt       # Python dependencies
+│   └── README.md              # Automation setup guide
 ├── lib/
 │   └── googleSheets.ts        # Google Sheets utilities
 ├── .env.example               # Environment variables template

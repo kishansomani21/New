@@ -1,0 +1,18 @@
+{
+  "window_title": "VT Transaction+",
+  "sin_button_image": null,
+  "delays": {
+    "short": 0.5,
+    "medium": 1.0,
+    "long": 2.0
+  },
+  "coordinates": {
+    "sin_button": null,
+    "customer_field": null,
+    "amount_field": null,
+    "description_field": null,
+    "save_button": null
+  },
+  "vat_rate": 20.0,
+  "comment": "Run 'python vt_automation.py --calibrate' to set up UI coordinates"
+}

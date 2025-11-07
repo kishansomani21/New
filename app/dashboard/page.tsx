@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import PlaidLink from '@/components/PlaidLink';
+import VTInvoiceCreator from '@/components/VTInvoiceCreator';
 
 interface BankAccount {
   id: string;
@@ -248,6 +249,11 @@ export default function Dashboard() {
           <p className="text-sm text-gray-500">
             Your transactions will be automatically synced to the specified Google Sheet ID.
           </p>
+        </div>
+
+        {/* VT Transaction Plus Invoice Creator */}
+        <div className="mt-12">
+          <VTInvoiceCreator />
         </div>
       </div>
     </div>
