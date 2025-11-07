@@ -1,15 +1,24 @@
-# 🏦 BankSync - Superhuman Banking Template
+# 929 Accountants - Professional Accounting Services Website
 
-A beautiful, modern web application that connects your bank accounts to Google Sheets through Plaid, GoCardless, or TrueLayer. Built with Next.js, TypeScript, and Tailwind CSS featuring a Superhuman-inspired design.
+A modern, professional website for 929 Accountants built with Next.js, TypeScript, and Tailwind CSS. Features a Superhuman-inspired black and white design with smooth animations.
 
 ## ✨ Features
 
-- 🎨 **Superhuman-inspired UI** - Beautiful gradient design with smooth animations
-- 🏦 **Multiple Bank Providers** - Support for Plaid, GoCardless, and TrueLayer
-- 📊 **Google Sheets Integration** - Automatic transaction synchronization
-- 🔐 **Bank-level Security** - OAuth 2.0 and encrypted connections
-- ⚡ **Real-time Sync** - Keep your spreadsheets up-to-date automatically
-- 🌍 **Global Coverage** - Thousands of banks across North America and Europe
+- 🎨 **Modern Design** - Sleek black and white Superhuman-inspired UI
+- 📱 **Fully Responsive** - Works perfectly on all devices
+- ⚡ **Fast Performance** - Built with Next.js 14 for optimal speed
+- 🎯 **SEO Optimized** - Proper meta tags and semantic HTML
+- 💼 **Complete Service Pages** - Detailed information about all accounting services
+- 💰 **Transparent Pricing** - Clear pricing packages
+- 📧 **Contact Form** - Easy way for clients to get in touch
+
+## 📄 Pages
+
+- **Homepage** - Hero section with key services and value propositions
+- **Services** - Comprehensive overview of all accounting services offered
+- **Pricing** - Transparent pricing packages for different business types
+- **About** - Company information and values
+- **Contact** - Contact form and business information
 
 ## 🚀 Quick Start
 
@@ -17,8 +26,6 @@ A beautiful, modern web application that connects your bank accounts to Google S
 
 - Node.js 18+ installed
 - npm or yarn package manager
-- Bank API credentials (Plaid, GoCardless, or TrueLayer)
-- Google Cloud Platform account with Sheets API enabled
 
 ### Installation
 
@@ -33,177 +40,157 @@ A beautiful, modern web application that connects your bank accounts to Google S
    npm install
    ```
 
-3. **Set up environment variables**
-
-   Copy `.env.example` to `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-
-   Then fill in your API credentials (see Configuration section below).
-
-4. **Run the development server**
+3. **Run the development server**
    ```bash
    npm run dev
    ```
 
-5. **Open your browser**
-
+4. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
-
-## 🔧 Configuration
-
-### Plaid Setup
-
-1. Sign up at [Plaid Dashboard](https://dashboard.plaid.com/)
-2. Create a new application
-3. Get your `client_id` and `secret` (use sandbox for testing)
-4. Add to `.env`:
-   ```
-   PLAID_CLIENT_ID=your_client_id
-   PLAID_SECRET=your_secret
-   PLAID_ENV=sandbox
-   NEXT_PUBLIC_PLAID_ENV=sandbox
-   ```
-
-### GoCardless Setup
-
-1. Sign up at [GoCardless](https://manage.gocardless.com/)
-2. Navigate to Developers → Bank Account Data
-3. Get your access token
-4. Add to `.env`:
-   ```
-   GOCARDLESS_ACCESS_TOKEN=your_access_token
-   GOCARDLESS_ENV=sandbox
-   ```
-
-### TrueLayer Setup
-
-1. Sign up at [TrueLayer Console](https://console.truelayer.com/)
-2. Create a new application
-3. Get your `client_id` and `client_secret`
-4. Add redirect URI: `http://localhost:3000/api/truelayer/callback`
-5. Add to `.env`:
-   ```
-   TRUELAYER_CLIENT_ID=your_client_id
-   TRUELAYER_CLIENT_SECRET=your_client_secret
-   TRUELAYER_REDIRECT_URI=http://localhost:3000/api/truelayer/callback
-   ```
-
-### Google Sheets API Setup
-
-1. **Create a Google Cloud Project**
-   - Go to [Google Cloud Console](https://console.cloud.google.com/)
-   - Create a new project
-
-2. **Enable Google Sheets API**
-   - In your project, go to "APIs & Services" → "Library"
-   - Search for "Google Sheets API"
-   - Click "Enable"
-
-3. **Create a Service Account**
-   - Go to "APIs & Services" → "Credentials"
-   - Click "Create Credentials" → "Service Account"
-   - Fill in the details and create
-   - Click on the created service account
-   - Go to "Keys" tab → "Add Key" → "Create new key"
-   - Choose JSON format and download
-
-4. **Configure Environment Variables**
-   - Open the downloaded JSON file
-   - Add to `.env`:
-   ```
-   GOOGLE_CLIENT_EMAIL=your-service-account@project.iam.gserviceaccount.com
-   GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
-   ```
-
-5. **Create a Google Sheet**
-   - Create a new Google Sheet
-   - Share it with your service account email (the `GOOGLE_CLIENT_EMAIL`)
-   - Give it "Editor" permissions
-   - Copy the Sheet ID from the URL: `https://docs.google.com/spreadsheets/d/{SHEET_ID}/edit`
-   - Add to `.env`:
-   ```
-   GOOGLE_SHEET_ID=your_sheet_id
-   ```
-
-### Application Settings
-
-```
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-```
-
-For production, change this to your deployed URL.
-
-## 📖 Usage
-
-### Connecting a Bank Account
-
-1. Navigate to the Dashboard
-2. Choose your preferred provider (Plaid, GoCardless, or TrueLayer)
-3. Follow the OAuth flow to connect your bank
-4. Your account will appear in the dashboard
-
-### Syncing to Google Sheets
-
-1. Once an account is connected, click "Sync to Sheets"
-2. Transactions will be automatically exported to your configured Google Sheet
-3. The sheet will have columns: Transaction ID, Date, Description, Amount, Category, Merchant, Status
-
-### Managing Multiple Accounts
-
-- You can connect multiple bank accounts
-- Each account can be synced independently
-- All transactions go to the same Google Sheet (or you can modify the code to use different sheets)
 
 ## 🏗️ Project Structure
 
 ```
 ├── app/
-│   ├── api/                    # API routes
-│   │   ├── plaid/             # Plaid integration endpoints
-│   │   ├── gocardless/        # GoCardless integration endpoints
-│   │   ├── truelayer/         # TrueLayer integration endpoints
-│   │   └── sync-to-sheets/    # Google Sheets sync endpoint
-│   ├── dashboard/             # Dashboard page
-│   ├── globals.css            # Global styles
-│   ├── layout.tsx             # Root layout
-│   └── page.tsx               # Landing page
-├── components/
-│   └── PlaidLink.tsx          # Plaid Link component
-├── lib/
-│   └── googleSheets.ts        # Google Sheets utilities
-├── .env.example               # Environment variables template
-├── package.json               # Dependencies
-└── README.md                  # This file
+│   ├── about/              # About page
+│   ├── contact/            # Contact page with form
+│   ├── pricing/            # Pricing packages page
+│   ├── services/           # Services overview page
+│   ├── globals.css         # Global styles and animations
+│   ├── layout.tsx          # Root layout with metadata
+│   └── page.tsx            # Homepage
+├── .env.example            # Environment variables template
+├── package.json            # Dependencies
+└── README.md              # This file
 ```
-
-## 🔒 Security Notes
-
-- **Never commit your `.env` file** - It contains sensitive API credentials
-- **Access tokens** - In production, store access tokens securely in a database with encryption
-- **User authentication** - Add user authentication before deploying (e.g., NextAuth.js)
-- **API routes** - Protect API routes with authentication middleware
-- **Rate limiting** - Implement rate limiting for API endpoints
-- **HTTPS only** - Always use HTTPS in production
 
 ## 🚢 Deployment
 
-### Vercel (Recommended)
+### Free Hosting Options
 
-1. Push your code to GitHub
-2. Import project in [Vercel](https://vercel.com)
-3. Add environment variables in Vercel dashboard
-4. Deploy!
+#### Option 1: Vercel (Recommended - FREE)
 
-### Other Platforms
+1. **Push your code to GitHub**
+   ```bash
+   git add .
+   git commit -m "Initial commit"
+   git push origin main
+   ```
 
-This Next.js app can be deployed to:
-- Netlify
-- Railway
-- Render
-- AWS Amplify
-- Your own server with Node.js
+2. **Deploy to Vercel**
+   - Go to [vercel.com](https://vercel.com)
+   - Sign up with your GitHub account (free)
+   - Click "Import Project"
+   - Select your repository
+   - Click "Deploy"
+   - Your site will be live at `your-project.vercel.app`
+
+3. **Custom Domain (Optional)**
+   - In Vercel dashboard, go to your project settings
+   - Click "Domains"
+   - Add `www.929accountants.co.uk`
+   - Follow the DNS instructions to point your domain to Vercel
+
+**Cost:** FREE (Vercel hobby plan includes custom domains)
+
+#### Option 2: Netlify (FREE)
+
+1. **Build the site**
+   ```bash
+   npm run build
+   ```
+
+2. **Deploy to Netlify**
+   - Go to [netlify.com](https://netlify.com)
+   - Sign up (free)
+   - Drag and drop the `.next` folder
+   - Or connect your GitHub repository
+   - Your site will be live at `your-site.netlify.app`
+
+3. **Custom Domain**
+   - In Netlify dashboard, go to Domain settings
+   - Add your custom domain
+   - Update your DNS records
+
+**Cost:** FREE
+
+#### Option 3: GitHub Pages (FREE)
+
+1. **Export static site**
+   - Add to `next.config.mjs`:
+   ```javascript
+   const nextConfig = {
+     output: 'export',
+   };
+   ```
+
+2. **Build and deploy**
+   ```bash
+   npm run build
+   ```
+   - Push the `out` folder to GitHub Pages
+
+**Cost:** FREE
+
+### Comparison of Free Hosting Options
+
+| Feature | Vercel | Netlify | GitHub Pages |
+|---------|--------|---------|--------------|
+| Custom Domain | ✅ Free | ✅ Free | ✅ Free |
+| SSL Certificate | ✅ Auto | ✅ Auto | ✅ Auto |
+| Build Time | Fast | Fast | Manual |
+| Ease of Use | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
+| Best For | Next.js | Any static site | Simple sites |
+
+**Recommendation:** Use **Vercel** - it's made by the creators of Next.js and offers the best performance and easiest deployment.
+
+## 💰 Cost Savings
+
+### Current Hosting: £30-40/month
+### New Hosting: £0/month (FREE!)
+
+**Annual Savings: £360-480**
+
+All the free platforms above include:
+- Custom domain support (www.929accountants.co.uk)
+- Free SSL certificates (HTTPS)
+- Automatic deployments from GitHub
+- Global CDN for fast loading
+- No bandwidth limits (on reasonable usage)
+
+## 🔧 Customization
+
+### Update Contact Information
+
+Edit the contact details in each page's footer and the contact page:
+- Email: Change `info@929accountants.co.uk` to your email
+- Phone: Add your phone number
+- Address: Update with your office location
+
+### Modify Services
+
+Edit `/app/services/page.tsx` to update service offerings:
+- Add or remove services
+- Update descriptions
+- Change pricing
+
+### Change Colors
+
+While the site uses a black and white theme, you can adjust the gradient in `/app/globals.css`:
+
+```css
+.gradient-text {
+  background: linear-gradient(135deg, #ffffff 0%, #9ca3af 100%);
+  /* Modify these colors */
+}
+```
+
+### Update Pricing
+
+Edit `/app/pricing/page.tsx` to modify:
+- Package prices
+- Included features
+- Additional services
 
 ## 🛠️ Development
 
@@ -219,64 +206,82 @@ This Next.js app can be deployed to:
 - **Framework**: Next.js 14 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
-- **Bank APIs**: Plaid, GoCardless, TrueLayer
-- **Sheets API**: Google Sheets API (googleapis)
-- **UI Library**: React 18
+- **UI Components**: React 18
 
-## 📝 Customization
+## 📧 Contact Form Setup
 
-### Changing Colors
+The contact form currently logs submissions to the console. To make it functional, you can:
 
-Edit the gradient colors in `app/globals.css`:
+1. **Use a form service (FREE options):**
+   - [Formspree](https://formspree.io) - Free tier available
+   - [Formspark](https://formspark.io) - Free tier available
+   - [Web3Forms](https://web3forms.com) - Completely free
 
-```css
-.gradient-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  /* Change these hex values */
-}
-```
+2. **Set up email forwarding:**
+   - Use the form service webhook to forward to your email
+   - No backend required
 
-### Adding More Providers
+3. **Example with Web3Forms (FREE):**
+   ```typescript
+   // In app/contact/page.tsx, add your Web3Forms access key
+   const response = await fetch('https://api.web3forms.com/submit', {
+     method: 'POST',
+     headers: { 'Content-Type': 'application/json' },
+     body: JSON.stringify({
+       access_key: 'YOUR_ACCESS_KEY',
+       ...formData
+     })
+   });
+   ```
 
-1. Create API routes in `app/api/[provider]/`
-2. Add provider button in `app/dashboard/page.tsx`
-3. Update the sync logic in `app/api/sync-to-sheets/route.ts`
+## 📱 Mobile Responsive
 
-### Custom Sheet Format
+The site is fully responsive and optimized for:
+- Mobile phones (320px+)
+- Tablets (768px+)
+- Desktops (1024px+)
+- Large screens (1920px+)
 
-Modify the `appendTransactionsToSheet` function in `lib/googleSheets.ts` to change the spreadsheet structure.
+## 🔒 Security
 
-## 🐛 Troubleshooting
+- No sensitive API keys required
+- Static site = secure by default
+- HTTPS included free with all hosting platforms
+- No database = no data breaches
 
-### "Failed to create link token"
-- Check your Plaid credentials in `.env`
-- Ensure `PLAID_ENV` matches your credential type (sandbox/development/production)
+## 📈 SEO
 
-### "Google Sheets sync failed"
-- Verify your service account email has access to the sheet
-- Check the private key format in `.env` (should include `\n` for newlines)
-- Ensure Google Sheets API is enabled in your GCP project
+The site includes:
+- Proper meta tags
+- Semantic HTML
+- Fast loading times
+- Mobile-friendly design
+- Clean URLs
 
-### "GoCardless/TrueLayer connection failed"
-- Verify your access tokens and credentials
-- Check the redirect URIs match exactly
-- Ensure you're using the correct environment (sandbox vs production)
-
-## 📄 License
-
-MIT License - feel free to use this template for your projects!
-
-## 🤝 Contributing
-
-Contributions are welcome! Please open an issue or submit a pull request.
-
-## 💡 Support
+## 🆘 Support
 
 For issues or questions:
-1. Check the troubleshooting section
-2. Review API provider documentation
-3. Open a GitHub issue
+1. Check this README
+2. Review the Next.js [documentation](https://nextjs.org/docs)
+3. Check the Tailwind CSS [documentation](https://tailwindcss.com/docs)
+
+## 📝 License
+
+This is your website - use it as you wish!
 
 ---
 
-Built with ❤️ using Next.js and bank-grade security
+## Next Steps
+
+1. ✅ Install dependencies: `npm install`
+2. ✅ Test locally: `npm run dev`
+3. ✅ Push to GitHub
+4. ✅ Deploy to Vercel (free)
+5. ✅ Connect custom domain
+6. ✅ Set up contact form (Web3Forms)
+7. ✅ Update contact information
+8. ✅ Celebrate saving £360-480/year! 🎉
+
+---
+
+Built with ❤️ for 929 Accountants | Saving you money while looking professional
