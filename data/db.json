@@ -1,0 +1,184 @@
+{
+  "users": [
+    {
+      "email": "john.carpenter@example.com",
+      "password": "$2b$10$5FLWe/srljVtuBG/xTu6membNj16LAjuGGLy9.dJQzxxHabIyJ4cu",
+      "name": "John Smith",
+      "userType": "WORKER",
+      "phone": "+1 555-0101",
+      "id": "wcwysjvgotmho5bq9y",
+      "createdAt": "2025-11-07T00:57:23.398Z",
+      "updatedAt": "2025-11-07T00:57:23.398Z"
+    },
+    {
+      "email": "maria.pizza@example.com",
+      "password": "$2b$10$Wwu7uhi8txP7StADQzoAAOxHY0GzvciyENKERnOKrH9UczrpBG4Fy",
+      "name": "Maria Garcia",
+      "userType": "WORKER",
+      "phone": "+1 555-0102",
+      "id": "6t47m5fd2gumho5bqca",
+      "createdAt": "2025-11-07T00:57:23.482Z",
+      "updatedAt": "2025-11-07T00:57:23.482Z"
+    },
+    {
+      "email": "bob.plumber@example.com",
+      "password": "$2b$10$MHfx9S1nfjkMQC44lEZhsevu14JiK6Rh.UWbbGrQSsxMuypLsANPS",
+      "name": "Bob Johnson",
+      "userType": "WORKER",
+      "phone": "+1 555-0103",
+      "id": "geleecgpqzemho5bqek",
+      "createdAt": "2025-11-07T00:57:23.564Z",
+      "updatedAt": "2025-11-07T00:57:23.564Z"
+    },
+    {
+      "email": "hiring@pizzahut.com",
+      "password": "$2b$10$Bi9AWnpBKxHrQD7XXqs6G.v1uaYmUp6972vNpnuJHPLvMnjWJxeFS",
+      "name": "Sarah Manager",
+      "userType": "COMPANY",
+      "id": "r92nrchhml9mho5bqgu",
+      "createdAt": "2025-11-07T00:57:23.646Z",
+      "updatedAt": "2025-11-07T00:57:23.646Z"
+    },
+    {
+      "email": "hr@constructionco.com",
+      "password": "$2b$10$iXkx/fuGmByOwkb.wcknDOm5TZ6MSLTHlfj5KuWRBUrb0gX4oyPkm",
+      "name": "Mike HR",
+      "userType": "COMPANY",
+      "id": "nl0a6fr24remho5bqj5",
+      "createdAt": "2025-11-07T00:57:23.729Z",
+      "updatedAt": "2025-11-07T00:57:23.729Z"
+    }
+  ],
+  "workerProfiles": [
+    {
+      "userId": "wcwysjvgotmho5bq9y",
+      "bio": "Experienced carpenter with 10 years in custom furniture and home construction.",
+      "location": "New York, USA",
+      "hourlyRate": 45,
+      "available": true,
+      "profileViews": 0,
+      "contactPurchases": 0,
+      "averageRating": 0,
+      "id": "xpa1igras4amho5bq9y",
+      "createdAt": "2025-11-07T00:57:23.398Z",
+      "updatedAt": "2025-11-07T00:57:23.398Z"
+    },
+    {
+      "userId": "6t47m5fd2gumho5bqca",
+      "bio": "Pizza chef with experience at Dominos and local pizzerias. Fast, efficient, and passionate about great pizza.",
+      "location": "Chicago, USA",
+      "hourlyRate": 22,
+      "available": true,
+      "profileViews": 0,
+      "contactPurchases": 0,
+      "averageRating": 0,
+      "id": "7fvxmo03l4hmho5bqca",
+      "createdAt": "2025-11-07T00:57:23.482Z",
+      "updatedAt": "2025-11-07T00:57:23.482Z"
+    },
+    {
+      "userId": "geleecgpqzemho5bqek",
+      "bio": "Licensed plumber specializing in residential and commercial installations.",
+      "location": "Los Angeles, USA",
+      "hourlyRate": 55,
+      "available": false,
+      "profileViews": 0,
+      "contactPurchases": 0,
+      "averageRating": 0,
+      "id": "9clfm3xviulmho5bqel",
+      "createdAt": "2025-11-07T00:57:23.565Z",
+      "updatedAt": "2025-11-07T00:57:23.565Z"
+    }
+  ],
+  "companyProfiles": [
+    {
+      "userId": "r92nrchhml9mho5bqgu",
+      "companyName": "Pizza Hut",
+      "industry": "Food Service",
+      "description": "Leading pizza restaurant chain",
+      "points": 0,
+      "totalReviews": 0,
+      "id": "o0ld45626bmho5bqgv",
+      "createdAt": "2025-11-07T00:57:23.647Z",
+      "updatedAt": "2025-11-07T00:57:23.647Z"
+    },
+    {
+      "userId": "nl0a6fr24remho5bqj5",
+      "companyName": "ABC Construction Co",
+      "industry": "Construction",
+      "description": "General contracting and construction services",
+      "points": 0,
+      "totalReviews": 0,
+      "id": "246y6bcy42umho5bqj6",
+      "createdAt": "2025-11-07T00:57:23.730Z",
+      "updatedAt": "2025-11-07T00:57:23.730Z"
+    }
+  ],
+  "skills": [
+    {
+      "name": "Carpentry",
+      "category": "Construction",
+      "description": "Building and repairing wooden structures",
+      "id": "54caqyd4hg8mho5bq73",
+      "createdAt": "2025-11-07T00:57:23.295Z"
+    },
+    {
+      "name": "Pizza Making",
+      "category": "Food Service",
+      "description": "Preparing and cooking pizzas",
+      "id": "e5yrvdqoivtmho5bq75",
+      "createdAt": "2025-11-07T00:57:23.297Z"
+    },
+    {
+      "name": "Plumbing",
+      "category": "Construction",
+      "description": "Installing and repairing water systems",
+      "id": "s6stvbfwm3mho5bq75",
+      "createdAt": "2025-11-07T00:57:23.297Z"
+    },
+    {
+      "name": "Customer Service",
+      "category": "Retail",
+      "description": "Assisting customers and handling inquiries",
+      "id": "6cba8ev4zn3mho5bq76",
+      "createdAt": "2025-11-07T00:57:23.298Z"
+    }
+  ],
+  "workerSkills": [
+    {
+      "workerId": "xpa1igras4amho5bq9y",
+      "skillId": "54caqyd4hg8mho5bq73",
+      "yearsExperience": 10,
+      "verified": false,
+      "id": "9riww7i5h6omho5bq9z",
+      "createdAt": "2025-11-07T00:57:23.399Z"
+    },
+    {
+      "workerId": "7fvxmo03l4hmho5bqca",
+      "skillId": "e5yrvdqoivtmho5bq75",
+      "yearsExperience": 5,
+      "verified": false,
+      "id": "sja3d6jcbmho5bqcb",
+      "createdAt": "2025-11-07T00:57:23.483Z"
+    },
+    {
+      "workerId": "7fvxmo03l4hmho5bqca",
+      "skillId": "6cba8ev4zn3mho5bq76",
+      "yearsExperience": 5,
+      "verified": false,
+      "id": "75cu58iscm6mho5bqcb",
+      "createdAt": "2025-11-07T00:57:23.483Z"
+    },
+    {
+      "workerId": "9clfm3xviulmho5bqel",
+      "skillId": "s6stvbfwm3mho5bq75",
+      "yearsExperience": 8,
+      "verified": false,
+      "id": "z24n1v6n0pemho5bqel",
+      "createdAt": "2025-11-07T00:57:23.565Z"
+    }
+  ],
+  "employmentHistory": [],
+  "reviews": [],
+  "contactPurchases": []
+}

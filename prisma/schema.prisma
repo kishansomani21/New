@@ -1,0 +1,171 @@
+// SkillSync Platform Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+enum UserType {
+  WORKER
+  COMPANY
+}
+
+enum EmploymentStatus {
+  CURRENT
+  PAST
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String
+  name          String
+  userType      UserType
+  phone         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  workerProfile WorkerProfile?
+  companyProfile CompanyProfile?
+}
+
+model WorkerProfile {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio             String?
+  location        String?
+  hourlyRate      Float?
+  available       Boolean  @default(true)
+  profileViews    Int      @default(0)
+  contactPurchases Int     @default(0)
+  averageRating   Float    @default(0)
+
+  // Relations
+  skills          WorkerSkill[]
+  employmentHistory EmploymentHistory[]
+  reviews         Review[]
+  contactPurchases ContactPurchase[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model CompanyProfile {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName     String
+  industry        String?
+  description     String?
+  website         String?
+  logo            String?
+
+  // Points system - earn points by leaving reviews
+  points          Int      @default(0)
+  totalReviews    Int      @default(0)
+
+  // Relations
+  employmentRecords EmploymentHistory[]
+  contactPurchases  ContactPurchase[]
+  reviewsGiven      Review[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Skill {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  category    String   // e.g., "Construction", "Food Service", "Technology", etc.
+  description String?
+
+  // Relations
+  workers     WorkerSkill[]
+
+  createdAt   DateTime @default(now())
+}
+
+model WorkerSkill {
+  id              String   @id @default(uuid())
+  workerId        String
+  worker          WorkerProfile @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  skillId         String
+  skill           Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  yearsExperience Int      @default(0)
+  verified        Boolean  @default(false) // Verified by employers
+
+  createdAt       DateTime @default(now())
+
+  @@unique([workerId, skillId])
+}
+
+model EmploymentHistory {
+  id              String   @id @default(uuid())
+  workerId        String
+  worker          WorkerProfile @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  companyId       String
+  company         CompanyProfile @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  jobTitle        String
+  description     String?
+  status          EmploymentStatus
+
+  // Sign in/out system
+  signedInAt      DateTime
+  signedOutAt     DateTime?
+  signedInBy      String   // Company user who signed them in
+  signedOutBy     String?  // Company user who signed them out
+
+  // Verification
+  verified        Boolean  @default(true)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Review {
+  id              String   @id @default(uuid())
+  workerId        String
+  worker          WorkerProfile @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  companyId       String
+  company         CompanyProfile @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  rating          Int      // 1-5 stars
+  comment         String?
+  workQuality     Int?     // 1-5
+  reliability     Int?     // 1-5
+  communication   Int?     // 1-5
+
+  // Points awarded to company for leaving this review
+  pointsAwarded   Int      @default(10)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ContactPurchase {
+  id              String   @id @default(uuid())
+  companyId       String
+  company         CompanyProfile @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  workerId        String
+  worker          WorkerProfile @relation(fields: [workerId], references: [id], onDelete: Cascade)
+
+  // Pricing - decreases with more company points
+  basePrice       Float    // Base price (e.g., $5)
+  discountApplied Float    // Discount percentage based on points
+  finalPrice      Float    // Actual price paid
+  pointsUsed      Int      // Points used for discount
+
+  // What was purchased
+  phoneAccess     Boolean  @default(false)
+  emailAccess     Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+}
