@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "BankSync - Connect Your Bank to Google Sheets",
-  description: "Automatically sync your bank transactions to Google Sheets using Plaid, GoCardless, or TrueLayer",
+  title: "929 Accountants - Expert Accounting Services in the UK",
+  description: "Professional accounting, tax, and business advisory services. Specializing in bookkeeping, VAT returns, self-assessment, and company accounts.",
 };
 
 export default function RootLayout({
