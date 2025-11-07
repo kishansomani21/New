@@ -1,134 +1,135 @@
 'use client';
 
-import Link from 'next/link';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Button from '@/components/Button';
+import Card from '@/components/Card';
 
 export default function Home() {
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const router = useRouter();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed');
+      }
+
+      // Store user in localStorage (in production, use proper session management)
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      // Redirect based on role
+      if (data.user.role === 'admin') {
+        router.push('/admin');
+      } else {
+        router.push('/client');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 bg-black/50 backdrop-blur-lg border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="text-2xl font-bold gradient-text">BankSync</div>
-          <div className="flex gap-6 items-center">
-            <Link href="#features" className="text-gray-300 hover:text-white transition">
-              Features
-            </Link>
-            <Link href="#pricing" className="text-gray-300 hover:text-white transition">
-              Pricing
-            </Link>
-            <Link
-              href="/dashboard"
-              className="px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition"
-            >
-              Get Started
-            </Link>
-          </div>
-        </div>
-      </nav>
-
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6">
-        <div className="max-w-6xl mx-auto text-center">
-          <h1 className="text-7xl font-bold mb-6 animate-fade-in">
-            Banking data in
-            <span className="gradient-text"> Google Sheets</span>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="max-w-md w-full space-y-8">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            ClientHub
           </h1>
-          <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto animate-slide-up">
-            Connect your bank accounts seamlessly through Plaid, GoCardless, or TrueLayer.
-            Automatically sync transactions to Google Sheets in real-time.
+          <p className="text-lg text-gray-600">
+            Simple Client Information Collection
           </p>
-          <div className="flex gap-4 justify-center animate-slide-up">
-            <Link
-              href="/dashboard"
-              className="px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg font-semibold text-lg hover:shadow-2xl hover:shadow-purple-500/50 transition transform hover:scale-105"
+        </div>
+
+        <Card>
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+                Sign In
+              </h2>
+              <p className="text-sm text-gray-600 mb-6">
+                Enter your email to access your dashboard
+              </p>
+            </div>
+
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                Email Address
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="you@example.com"
+              />
+            </div>
+
+            {error && (
+              <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              disabled={loading}
+              fullWidth
             >
-              Start Free Trial
-            </Link>
-            <button className="px-8 py-4 border border-gray-700 rounded-lg font-semibold text-lg hover:border-purple-500 transition">
-              Watch Demo
-            </button>
-          </div>
-        </div>
+              {loading ? 'Signing in...' : 'Sign In'}
+            </Button>
 
-        {/* Feature Preview */}
-        <div className="max-w-5xl mx-auto mt-20 animate-slide-up">
-          <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-8 border border-gray-700 backdrop-blur">
-            <div className="grid grid-cols-3 gap-6 text-center">
-              <div className="p-6">
-                <div className="text-4xl mb-3">🏦</div>
-                <h3 className="text-xl font-semibold mb-2">Multiple Providers</h3>
-                <p className="text-gray-400">Plaid, GoCardless & TrueLayer support</p>
-              </div>
-              <div className="p-6">
-                <div className="text-4xl mb-3">🔄</div>
-                <h3 className="text-xl font-semibold mb-2">Real-time Sync</h3>
-                <p className="text-gray-400">Automatic transaction synchronization</p>
-              </div>
-              <div className="p-6">
-                <div className="text-4xl mb-3">📊</div>
-                <h3 className="text-xl font-semibold mb-2">Google Sheets</h3>
-                <p className="text-gray-400">Direct integration with your spreadsheets</p>
+            <div className="text-center text-sm text-gray-600 pt-4">
+              <p className="mb-2">Demo accounts:</p>
+              <div className="space-y-1 text-xs">
+                <p><strong>Admin:</strong> admin@example.com</p>
+                <p><strong>Client:</strong> john@example.com or jane@example.com</p>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
+          </form>
+        </Card>
 
-      {/* Features Section */}
-      <section id="features" className="py-20 px-6 bg-black/30">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-5xl font-bold text-center mb-16">
-            Everything you need to manage <span className="gradient-text">banking data</span>
-          </h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="p-8 bg-gradient-to-br from-gray-800/30 to-gray-900/30 rounded-xl border border-gray-800 hover:border-purple-500/50 transition">
-              <h3 className="text-2xl font-bold mb-4">🔐 Bank-level Security</h3>
-              <p className="text-gray-400">
-                All connections use OAuth 2.0 and bank-grade encryption. We never store your banking credentials.
-              </p>
+        <div className="text-center">
+          <div className="flex items-center justify-center space-x-8 text-sm text-gray-600">
+            <div className="flex items-center space-x-2">
+              <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span>Easy Upload</span>
             </div>
-            <div className="p-8 bg-gradient-to-br from-gray-800/30 to-gray-900/30 rounded-xl border border-gray-800 hover:border-purple-500/50 transition">
-              <h3 className="text-2xl font-bold mb-4">⚡ Lightning Fast</h3>
-              <p className="text-gray-400">
-                Transactions sync in real-time. See your latest banking data the moment it happens.
-              </p>
+            <div className="flex items-center space-x-2">
+              <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+              </svg>
+              <span>Notifications</span>
             </div>
-            <div className="p-8 bg-gradient-to-br from-gray-800/30 to-gray-900/30 rounded-xl border border-gray-800 hover:border-purple-500/50 transition">
-              <h3 className="text-2xl font-bold mb-4">🌍 Global Coverage</h3>
-              <p className="text-gray-400">
-                Support for thousands of banks across North America, Europe, and beyond.
-              </p>
-            </div>
-            <div className="p-8 bg-gradient-to-br from-gray-800/30 to-gray-900/30 rounded-xl border border-gray-800 hover:border-purple-500/50 transition">
-              <h3 className="text-2xl font-bold mb-4">📈 Custom Analytics</h3>
-              <p className="text-gray-400">
-                Use Google Sheets formulas and pivot tables to analyze your financial data your way.
-              </p>
+            <div className="flex items-center space-x-2">
+              <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span>Secure</span>
             </div>
           </div>
         </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-5xl font-bold mb-6">Ready to get started?</h2>
-          <p className="text-xl text-gray-400 mb-8">
-            Connect your first bank account in under 2 minutes.
-          </p>
-          <Link
-            href="/dashboard"
-            className="inline-block px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg font-semibold text-lg hover:shadow-2xl hover:shadow-purple-500/50 transition transform hover:scale-105"
-          >
-            Start Syncing Now →
-          </Link>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t border-gray-800 py-8 px-6 text-center text-gray-500">
-        <p>&copy; 2024 BankSync. Built with security and privacy in mind.</p>
-      </footer>
+      </div>
     </div>
   );
 }
