@@ -1,9 +1,12 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId') || `user_${Date.now()}`;
+
     const accessToken = process.env.GOCARDLESS_ACCESS_TOKEN;
-    const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/gocardless/callback`;
+    const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/gocardless/callback?state=${userId}`;
 
     if (!accessToken) {
       return NextResponse.json(

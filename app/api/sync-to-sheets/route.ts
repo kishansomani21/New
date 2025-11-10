@@ -1,28 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { appendTransactionsToSheet, Transaction } from '@/lib/googleSheets';
+import { getUserAccount, updateLastSync } from '@/lib/dataStore';
 
 export async function POST(request: NextRequest) {
   try {
-    const { accountId, accessToken, provider } = await request.json();
+    const { accountId, userId } = await request.json();
 
-    if (!accountId) {
+    if (!accountId || !userId) {
       return NextResponse.json(
-        { error: 'Account ID is required' },
+        { error: 'Account ID and User ID are required' },
         { status: 400 }
+      );
+    }
+
+    // Get user account data (which includes access token and sheet ID)
+    const userAccount = getUserAccount(userId, accountId);
+
+    if (!userAccount) {
+      return NextResponse.json(
+        { error: 'Account not found for this user' },
+        { status: 404 }
       );
     }
 
     let transactions: Transaction[] = [];
 
     // Fetch transactions based on provider
-    if (provider === 'plaid' || !provider) {
-      // Assume Plaid for now - in production you'd determine this from stored data
+    if (userAccount.provider === 'plaid') {
       const plaidResponse = await fetch(
         `${process.env.NEXT_PUBLIC_APP_URL}/api/plaid/transactions`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ accessToken }),
+          body: JSON.stringify({ accessToken: userAccount.accessToken }),
         }
       );
 
@@ -32,14 +42,13 @@ export async function POST(request: NextRequest) {
 
       const plaidData = await plaidResponse.json();
       transactions = plaidData.transactions;
-    } else if (provider === 'gocardless') {
-      // Fetch from GoCardless
-      const gcAccessToken = process.env.GOCARDLESS_ACCESS_TOKEN;
+    } else if (userAccount.provider === 'gocardless') {
+      // Fetch from GoCardless using the stored access token
       const gcResponse = await fetch(
         `https://bankaccountdata.gocardless.com/api/v2/accounts/${accountId}/transactions/`,
         {
           headers: {
-            'Authorization': `Bearer ${gcAccessToken}`,
+            'Authorization': `Bearer ${userAccount.accessToken}`,
           },
         }
       );
@@ -53,27 +62,49 @@ export async function POST(request: NextRequest) {
         category: 'N/A',
         merchantName: txn.creditorName || '',
       })) || [];
-    } else if (provider === 'truelayer') {
-      // TrueLayer implementation would go here
-      // This would require the stored access token for the account
-      transactions = [];
+    } else if (userAccount.provider === 'truelayer') {
+      // TrueLayer implementation using the stored access token
+      const tlResponse = await fetch(
+        `https://api.truelayer.com/data/v1/accounts/${accountId}/transactions`,
+        {
+          headers: {
+            'Authorization': `Bearer ${userAccount.accessToken}`,
+          },
+        }
+      );
+
+      const tlData = await tlResponse.json();
+      transactions = tlData.results?.map((txn: any) => ({
+        id: txn.transaction_id,
+        date: txn.timestamp,
+        name: txn.description || 'N/A',
+        amount: txn.amount,
+        category: txn.transaction_category || 'N/A',
+        merchantName: txn.merchant_name || '',
+      })) || [];
     }
 
     if (transactions.length === 0) {
       return NextResponse.json({
         success: false,
         message: 'No transactions found to sync',
+        sheetUrl: userAccount.sheetUrl,
       });
     }
 
-    // Sync to Google Sheets
-    const result = await appendTransactionsToSheet(transactions);
+    // Sync to user's specific Google Sheet
+    const result = await appendTransactionsToSheet(transactions, userAccount.sheetId);
+
+    // Update last sync time
+    updateLastSync(userId, accountId);
+
+    console.log(`✅ Synced ${transactions.length} transactions for user ${userId} to ${userAccount.sheetUrl}`);
 
     return NextResponse.json({
       success: true,
       transactionCount: transactions.length,
       spreadsheetUrl: result.spreadsheetUrl,
-      message: `Successfully synced ${transactions.length} transactions to Google Sheets`,
+      message: `Successfully synced ${transactions.length} transactions to your Google Sheet`,
     });
   } catch (error: any) {
     console.error('Sync error:', error);

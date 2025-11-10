@@ -1,21 +1,62 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import PlaidLink from '@/components/PlaidLink';
 
 interface BankAccount {
-  id: string;
+  accountId: string;
   provider: 'plaid' | 'gocardless' | 'truelayer';
   accountName: string;
-  balance: string;
-  lastSync: string;
+  sheetUrl: string;
+  createdAt: string;
+  lastSync?: string;
 }
 
 export default function Dashboard() {
   const [accounts, setAccounts] = useState<BankAccount[]>([]);
   const [selectedProvider, setSelectedProvider] = useState<'plaid' | 'gocardless' | 'truelayer' | null>(null);
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle');
+  const [userId, setUserId] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Initialize userId and load accounts
+  useEffect(() => {
+    // Get or create userId from localStorage
+    // In production, this would come from your authentication system
+    let storedUserId = localStorage.getItem('userId');
+    if (!storedUserId) {
+      storedUserId = `user_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      localStorage.setItem('userId', storedUserId);
+    }
+    setUserId(storedUserId);
+
+    // Load user's accounts
+    loadAccounts(storedUserId);
+
+    // Check for success callbacks from GoCardless or TrueLayer
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('gocardless_success') === 'true' || urlParams.get('truelayer_success') === 'true') {
+      setSyncStatus('success');
+      // Clean up URL
+      window.history.replaceState({}, '', '/dashboard');
+    }
+  }, []);
+
+  const loadAccounts = async (uid: string) => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/accounts?userId=${uid}`);
+      if (response.ok) {
+        const data = await response.json();
+        setAccounts(data.accounts || []);
+      }
+    } catch (error) {
+      console.error('Error loading accounts:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handlePlaidSuccess = async (publicToken: string) => {
     try {
@@ -23,21 +64,15 @@ export default function Dashboard() {
       const response = await fetch('/api/plaid/exchange-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ publicToken }),
+        body: JSON.stringify({ publicToken, userId }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        // Add the new account
-        setAccounts([...accounts, {
-          id: data.accountId,
-          provider: 'plaid',
-          accountName: data.accountName || 'Checking Account',
-          balance: data.balance || '$0.00',
-          lastSync: new Date().toISOString(),
-        }]);
         setSyncStatus('success');
         setSelectedProvider(null);
+        // Reload accounts to get the new one
+        await loadAccounts(userId);
       } else {
         setSyncStatus('error');
       }
@@ -49,7 +84,7 @@ export default function Dashboard() {
 
   const handleGoCardlessConnect = async () => {
     try {
-      const response = await fetch('/api/gocardless/authorize');
+      const response = await fetch(`/api/gocardless/authorize?userId=${userId}`);
       const data = await response.json();
       if (data.authUrl) {
         window.location.href = data.authUrl;
@@ -61,7 +96,7 @@ export default function Dashboard() {
 
   const handleTrueLayerConnect = async () => {
     try {
-      const response = await fetch('/api/truelayer/authorize');
+      const response = await fetch(`/api/truelayer/authorize?userId=${userId}`);
       const data = await response.json();
       if (data.authUrl) {
         window.location.href = data.authUrl;
@@ -77,17 +112,13 @@ export default function Dashboard() {
       const response = await fetch('/api/sync-to-sheets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accountId }),
+        body: JSON.stringify({ accountId, userId }),
       });
 
       if (response.ok) {
         setSyncStatus('success');
-        // Update last sync time
-        setAccounts(accounts.map(acc =>
-          acc.id === accountId
-            ? { ...acc, lastSync: new Date().toISOString() }
-            : acc
-        ));
+        // Reload accounts to get updated lastSync time
+        await loadAccounts(userId);
       } else {
         setSyncStatus('error');
       }
@@ -196,7 +227,11 @@ export default function Dashboard() {
         {/* Connected Accounts */}
         <div>
           <h2 className="text-2xl font-semibold mb-6">Connected Accounts</h2>
-          {accounts.length === 0 ? (
+          {isLoading ? (
+            <div className="p-12 bg-gradient-to-br from-gray-800/30 to-gray-900/30 rounded-xl border border-gray-800 text-center">
+              <p className="text-gray-400 text-lg">Loading accounts...</p>
+            </div>
+          ) : accounts.length === 0 ? (
             <div className="p-12 bg-gradient-to-br from-gray-800/30 to-gray-900/30 rounded-xl border border-gray-800 text-center">
               <p className="text-gray-400 text-lg">No accounts connected yet</p>
               <p className="text-gray-500 text-sm mt-2">
@@ -207,26 +242,39 @@ export default function Dashboard() {
             <div className="grid gap-6">
               {accounts.map((account) => (
                 <div
-                  key={account.id}
+                  key={account.accountId}
                   className="p-6 bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-xl border border-gray-700 hover:border-purple-500/50 transition"
                 >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="flex items-center gap-3 mb-2">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-3">
                         <h3 className="text-xl font-bold">{account.accountName}</h3>
                         <span className="px-3 py-1 bg-purple-900/30 text-purple-300 rounded-full text-xs uppercase">
                           {account.provider}
                         </span>
                       </div>
-                      <p className="text-2xl font-semibold text-green-400 mb-2">
-                        {account.balance}
-                      </p>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-gray-400 text-sm">📊 Google Sheet:</span>
+                        <a
+                          href={account.sheetUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-400 hover:text-blue-300 text-sm underline"
+                        >
+                          Open Sheet
+                        </a>
+                      </div>
                       <p className="text-gray-500 text-sm">
-                        Last synced: {new Date(account.lastSync).toLocaleString()}
+                        Created: {new Date(account.createdAt).toLocaleString()}
                       </p>
+                      {account.lastSync && (
+                        <p className="text-gray-500 text-sm">
+                          Last synced: {new Date(account.lastSync).toLocaleString()}
+                        </p>
+                      )}
                     </div>
                     <button
-                      onClick={() => syncToSheets(account.id)}
+                      onClick={() => syncToSheets(account.accountId)}
                       disabled={syncStatus === 'syncing'}
                       className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition disabled:opacity-50"
                     >
@@ -241,13 +289,19 @@ export default function Dashboard() {
 
         {/* Google Sheets Setup Info */}
         <div className="mt-12 p-6 bg-gradient-to-br from-green-900/20 to-emerald-900/20 rounded-xl border border-green-500/30">
-          <h3 className="text-xl font-bold mb-3">📊 Google Sheets Setup</h3>
+          <h3 className="text-xl font-bold mb-3">📊 How It Works</h3>
           <p className="text-gray-400 mb-3">
-            Make sure you've configured your Google Sheets credentials in the environment variables.
+            When you connect a bank account, a new Google Sheet is automatically created just for that account.
           </p>
-          <p className="text-sm text-gray-500">
-            Your transactions will be automatically synced to the specified Google Sheet ID.
-          </p>
+          <ul className="text-sm text-gray-400 space-y-2">
+            <li>✓ Each bank account gets its own dedicated Google Sheet</li>
+            <li>✓ Only you have access to view the sheets (via your service account)</li>
+            <li>✓ Click "Sync to Sheets" to fetch and export your latest transactions</li>
+            <li>✓ Click "Open Sheet" to view your transactions in Google Sheets</li>
+          </ul>
+          {userId && (
+            <p className="text-xs text-gray-600 mt-4">Your User ID: {userId}</p>
+          )}
         </div>
       </div>
     </div>

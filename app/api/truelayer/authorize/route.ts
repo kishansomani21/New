@@ -1,7 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId') || `user_${Date.now()}`;
+
     const clientId = process.env.TRUELAYER_CLIENT_ID;
     const redirectUri = process.env.TRUELAYER_REDIRECT_URI;
 
@@ -19,7 +22,7 @@ export async function GET() {
     authUrl.searchParams.append('redirect_uri', redirectUri);
     authUrl.searchParams.append('scope', 'info accounts balance transactions offline_access');
     authUrl.searchParams.append('providers', 'uk-ob-all uk-oauth-all');
-    authUrl.searchParams.append('state', `state-${Date.now()}`);
+    authUrl.searchParams.append('state', userId);
 
     return NextResponse.json({
       authUrl: authUrl.toString(),

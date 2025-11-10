@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createNewSpreadsheet } from '@/lib/googleSheets';
+import { saveUserAccount } from '@/lib/dataStore';
 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const code = searchParams.get('code');
     const error = searchParams.get('error');
+    const userId = searchParams.get('state') || `user_${Date.now()}`;
 
     if (error) {
       return NextResponse.redirect(
@@ -55,9 +58,31 @@ export async function GET(request: NextRequest) {
     const accountsData = await accountsResponse.json();
 
     if (accountsData.results && accountsData.results.length > 0) {
+      const account = accountsData.results[0];
+      const accountId = account.account_id;
+      const accountName = account.display_name || 'TrueLayer Account';
+
+      // Create a new Google Sheet for this user
+      const sheetTitle = `${accountName} - ${userId} - ${new Date().toLocaleDateString()}`;
+      const sheetResult = await createNewSpreadsheet(sheetTitle);
+
+      // Store user account data
+      saveUserAccount({
+        userId: userId,
+        accountId: accountId,
+        provider: 'truelayer',
+        accessToken: tokenData.access_token,
+        sheetId: sheetResult.spreadsheetId!,
+        sheetUrl: sheetResult.spreadsheetUrl!,
+        accountName: accountName,
+        createdAt: new Date().toISOString(),
+      });
+
+      console.log(`✅ Created new sheet for TrueLayer user ${userId}: ${sheetResult.spreadsheetUrl}`);
+
       // Successfully connected
       return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?truelayer_success=true&account_id=${accountsData.results[0].account_id}`
+        `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?truelayer_success=true`
       );
     } else {
       return NextResponse.redirect(

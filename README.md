@@ -6,10 +6,12 @@ A beautiful, modern web application that connects your bank accounts to Google S
 
 - 🎨 **Superhuman-inspired UI** - Beautiful gradient design with smooth animations
 - 🏦 **Multiple Bank Providers** - Support for Plaid, GoCardless, and TrueLayer
-- 📊 **Google Sheets Integration** - Automatic transaction synchronization
+- 📊 **Auto-Sheet Creation** - Each user gets a dedicated Google Sheet per bank account
+- 🔒 **Private & Secure** - Only you have access to view the sheets (via service account)
 - 🔐 **Bank-level Security** - OAuth 2.0 and encrypted connections
 - ⚡ **Real-time Sync** - Keep your spreadsheets up-to-date automatically
 - 🌍 **Global Coverage** - Thousands of banks across North America and Europe
+- 💾 **Persistent Storage** - User data stored securely in local file system
 
 ## 🚀 Quick Start
 
@@ -137,30 +139,43 @@ For production, change this to your deployed URL.
 
 ## 📖 Usage
 
+### How It Works
+
+When a user connects their bank account, the app automatically:
+1. **Creates a new Google Sheet** dedicated to that specific bank account
+2. **Stores the mapping** between the user, their bank account, and their Google Sheet
+3. **Only you have access** to view these sheets through your Google Service Account
+
+Each user gets their own set of sheets, one per bank account, ensuring complete data isolation.
+
 ### Connecting a Bank Account
 
 1. Navigate to the Dashboard
 2. Choose your preferred provider (Plaid, GoCardless, or TrueLayer)
 3. Follow the OAuth flow to connect your bank
-4. Your account will appear in the dashboard
+4. A new Google Sheet is automatically created for this account
+5. Your account appears in the dashboard with a link to the sheet
 
 ### Syncing to Google Sheets
 
 1. Once an account is connected, click "Sync to Sheets"
-2. Transactions will be automatically exported to your configured Google Sheet
-3. The sheet will have columns: Transaction ID, Date, Description, Amount, Category, Merchant, Status
+2. Transactions are fetched from the bank and exported to that account's dedicated Google Sheet
+3. The sheet has columns: Transaction ID, Date, Description, Amount, Category, Merchant, Status
+4. Click "Open Sheet" to view the transactions in Google Sheets
 
 ### Managing Multiple Accounts
 
-- You can connect multiple bank accounts
-- Each account can be synced independently
-- All transactions go to the same Google Sheet (or you can modify the code to use different sheets)
+- Connect multiple bank accounts from different providers
+- Each account gets its own dedicated Google Sheet
+- Sync each account independently
+- All sheets are accessible only to you via the service account
 
 ## 🏗️ Project Structure
 
 ```
 ├── app/
 │   ├── api/                    # API routes
+│   │   ├── accounts/          # User accounts endpoint
 │   │   ├── plaid/             # Plaid integration endpoints
 │   │   ├── gocardless/        # GoCardless integration endpoints
 │   │   ├── truelayer/         # TrueLayer integration endpoints
@@ -172,7 +187,9 @@ For production, change this to your deployed URL.
 ├── components/
 │   └── PlaidLink.tsx          # Plaid Link component
 ├── lib/
+│   ├── dataStore.ts           # User data persistence layer
 │   └── googleSheets.ts        # Google Sheets utilities
+├── data/                      # User data storage (gitignored)
 ├── .env.example               # Environment variables template
 ├── package.json               # Dependencies
 └── README.md                  # This file
@@ -181,11 +198,13 @@ For production, change this to your deployed URL.
 ## 🔒 Security Notes
 
 - **Never commit your `.env` file** - It contains sensitive API credentials
-- **Access tokens** - In production, store access tokens securely in a database with encryption
-- **User authentication** - Add user authentication before deploying (e.g., NextAuth.js)
+- **Never commit the `/data` folder** - It contains user access tokens and sheet IDs (already in .gitignore)
+- **Access tokens** - Currently stored in JSON files. For production, use a database with encryption
+- **User authentication** - Add proper user authentication before deploying (e.g., NextAuth.js, Clerk, Auth0)
 - **API routes** - Protect API routes with authentication middleware
 - **Rate limiting** - Implement rate limiting for API endpoints
 - **HTTPS only** - Always use HTTPS in production
+- **Google Sheets** - Only your service account can access the created sheets. Never share sheet IDs publicly
 
 ## 🚢 Deployment
 

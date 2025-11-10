@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Configuration, PlaidApi, PlaidEnvironments } from 'plaid';
+import { createNewSpreadsheet } from '@/lib/googleSheets';
+import { saveUserAccount } from '@/lib/dataStore';
 
 const configuration = new Configuration({
   basePath: PlaidEnvironments[process.env.PLAID_ENV as keyof typeof PlaidEnvironments] || PlaidEnvironments.sandbox,
@@ -15,7 +17,11 @@ const plaidClient = new PlaidApi(configuration);
 
 export async function POST(request: NextRequest) {
   try {
-    const { publicToken } = await request.json();
+    const { publicToken, userId } = await request.json();
+
+    // If no userId provided, generate a simple one based on timestamp
+    // In production, this should come from your authentication system
+    const effectiveUserId = userId || `user_${Date.now()}`;
 
     // Exchange public token for access token
     const exchangeResponse = await plaidClient.itemPublicTokenExchange({
@@ -31,17 +37,34 @@ export async function POST(request: NextRequest) {
     });
 
     const accounts = accountsResponse.data.accounts;
+    const accountName = accounts[0]?.name || 'Bank Account';
 
-    // In a real application, you would store the access_token securely
-    // in a database associated with the user
-    // For this example, we'll just return the account info
+    // Create a new Google Sheet for this user
+    const sheetTitle = `${accountName} - ${effectiveUserId} - ${new Date().toLocaleDateString()}`;
+    const sheetResult = await createNewSpreadsheet(sheetTitle);
+
+    // Store user account data securely
+    saveUserAccount({
+      userId: effectiveUserId,
+      accountId: itemId,
+      provider: 'plaid',
+      accessToken: accessToken,
+      sheetId: sheetResult.spreadsheetId!,
+      sheetUrl: sheetResult.spreadsheetUrl!,
+      accountName: accountName,
+      createdAt: new Date().toISOString(),
+    });
+
+    console.log(`✅ Created new sheet for user ${effectiveUserId}: ${sheetResult.spreadsheetUrl}`);
 
     return NextResponse.json({
       success: true,
       accountId: itemId,
-      accountName: accounts[0]?.name || 'Bank Account',
+      userId: effectiveUserId,
+      accountName: accountName,
       balance: `$${accounts[0]?.balances.current?.toFixed(2) || '0.00'}`,
-      accessToken, // In production, never return this to the client!
+      sheetId: sheetResult.spreadsheetId,
+      sheetUrl: sheetResult.spreadsheetUrl,
       accounts: accounts.map(acc => ({
         id: acc.account_id,
         name: acc.name,
