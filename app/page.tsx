@@ -13,6 +13,9 @@ export default function Home() {
             <Link href="#features" className="text-gray-300 hover:text-white transition">
               Features
             </Link>
+            <Link href="/onboarding" className="text-gray-300 hover:text-white transition">
+              Client Onboarding
+            </Link>
             <Link href="#pricing" className="text-gray-300 hover:text-white transition">
               Pricing
             </Link>
