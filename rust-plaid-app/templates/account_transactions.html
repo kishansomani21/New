@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="px-4 py-6 sm:px-0">
+    <!-- Header -->
+    <div class="mb-8">
+        <a href="/accounts" class="text-purple-400 hover:text-purple-300 text-sm mb-2 inline-block">
+            ← Back to Accounts
+        </a>
+        {% if account %}
+        <div class="flex items-center mt-2">
+            <div class="w-12 h-12 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-full flex items-center justify-center">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                </svg>
+            </div>
+            <div class="ml-4">
+                <h1 class="text-3xl font-bold">{{ account.name }}</h1>
+                <p class="text-gray-400">
+                    {{ account.account_type | capitalize }}
+                    {% if account.subtype %} - {{ account.subtype | capitalize }}{% endif %}
+                    {% if account.mask %} • •••• {{ account.mask }}{% endif %}
+                </p>
+            </div>
+            <div class="ml-auto text-right">
+                <p class="text-sm text-gray-400">Current Balance</p>
+                <p class="text-2xl font-bold {% if account.current_balance and account.current_balance < 0 %}text-red-400{% else %}text-white{% endif %}">
+                    ${{ "%.2f" | format(account.current_balance | default(value=0)) }}
+                </p>
+            </div>
+        </div>
+        {% else %}
+        <h1 class="text-3xl font-bold">Account Transactions</h1>
+        {% endif %}
+    </div>
+
+    <!-- Transactions Table -->
+    <div class="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+        {% if transactions | length > 0 %}
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-750 border-b border-gray-700">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Date</th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Description</th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Category</th>
+                        <th class="px-6 py-4 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">Amount</th>
+                        <th class="px-6 py-4 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700">
+                    {% for transaction in transactions %}
+                    <tr class="hover:bg-gray-750 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm text-gray-300">{{ transaction.date }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div>
+                                <p class="font-medium text-white">{{ transaction.name }}</p>
+                                {% if transaction.merchant_name %}
+                                <p class="text-sm text-gray-400">{{ transaction.merchant_name }}</p>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if transaction.category %}
+                            <span class="px-3 py-1 text-xs font-medium bg-gray-700 rounded-full text-gray-300">
+                                {{ transaction.category }}
+                            </span>
+                            {% else %}
+                            <span class="text-gray-500">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                            <span class="font-semibold {% if transaction.amount > 0 %}text-red-400{% else %}text-green-400{% endif %}">
+                                {% if transaction.amount > 0 %}-{% else %}+{% endif %}${{ "%.2f" | format(transaction.amount | abs) }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            {% if transaction.pending %}
+                            <span class="px-2 py-1 text-xs font-medium bg-yellow-900 text-yellow-300 rounded-full">Pending</span>
+                            {% else %}
+                            <span class="px-2 py-1 text-xs font-medium bg-green-900 text-green-300 rounded-full">Posted</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="px-6 py-4 border-t border-gray-700">
+            <p class="text-sm text-gray-400">
+                Showing {{ transactions | length }} transactions
+            </p>
+        </div>
+        {% else %}
+        <div class="p-12 text-center">
+            <div class="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">No Transactions</h3>
+            <p class="text-gray-400 mb-6">This account doesn't have any transactions yet. Try syncing to fetch the latest data.</p>
+            <a href="/dashboard" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg inline-block hover:from-purple-700 hover:to-indigo-700 transition-all">
+                Sync from Dashboard
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

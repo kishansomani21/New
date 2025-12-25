@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="px-4 py-6 sm:px-0">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold">Accounts</h1>
+            <p class="text-gray-400 mt-1">Manage your connected bank accounts</p>
+        </div>
+        <button
+            id="connect-bank-btn"
+            class="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all"
+        >
+            + Add Account
+        </button>
+    </div>
+
+    <!-- Accounts Grid -->
+    {% if accounts | length > 0 %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for account in accounts %}
+        <div class="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden hover:border-gray-600 transition-colors">
+            <div class="p-6">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-full flex items-center justify-center">
+                        {% if account.account_type == "depository" %}
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                        </svg>
+                        {% elif account.account_type == "credit" %}
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                        </svg>
+                        {% else %}
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        {% endif %}
+                    </div>
+                    <div class="ml-4 flex-1">
+                        <h3 class="font-semibold text-lg">{{ account.name }}</h3>
+                        <p class="text-sm text-gray-400">{{ account.institution_name | default(value="Unknown Bank") }}</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">Current Balance</span>
+                        <span class="font-semibold text-lg {% if account.current_balance and account.current_balance < 0 %}text-red-400{% else %}text-white{% endif %}">
+                            ${{ "%.2f" | format(account.current_balance | default(value=0)) }}
+                        </span>
+                    </div>
+                    {% if account.available_balance %}
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">Available</span>
+                        <span class="text-gray-300">${{ "%.2f" | format(account.available_balance) }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">Type</span>
+                        <span class="text-gray-300">
+                            {{ account.account_type | capitalize }}
+                            {% if account.subtype %} - {{ account.subtype | capitalize }}{% endif %}
+                        </span>
+                    </div>
+                    {% if account.mask %}
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400">Account</span>
+                        <span class="text-gray-300">•••• {{ account.mask }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="border-t border-gray-700 p-4 bg-gray-850">
+                <a
+                    href="/transactions/{{ account.id }}"
+                    class="block w-full text-center py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+                >
+                    View Transactions
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-gray-800 rounded-xl border border-gray-700 p-12 text-center">
+        <div class="w-20 h-20 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg class="w-10 h-10 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+            </svg>
+        </div>
+        <h3 class="text-2xl font-semibold mb-2">No Accounts Connected</h3>
+        <p class="text-gray-400 mb-8 max-w-md mx-auto">
+            Connect your bank accounts to view balances, track transactions, and manage your finances all in one place.
+        </p>
+        <button
+            id="connect-first-btn"
+            class="px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg text-lg hover:from-purple-700 hover:to-indigo-700 transition-all"
+        >
+            Connect Your First Account
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="fixed bottom-4 right-4 bg-gray-800 border border-gray-700 rounded-lg p-4 shadow-xl hidden animate-fadeIn">
+    <div class="flex items-center">
+        <div id="toast-icon" class="mr-3"></div>
+        <div>
+            <p id="toast-title" class="font-semibold"></p>
+            <p id="toast-message" class="text-sm text-gray-400"></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let linkHandler = null;
+
+    function showToast(title, message, type = 'success') {
+        const toast = document.getElementById('toast');
+        document.getElementById('toast-title').textContent = title;
+        document.getElementById('toast-message').textContent = message;
+        document.getElementById('toast-icon').innerHTML = type === 'success'
+            ? '<svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'
+            : '<svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 5000);
+    }
+
+    async function initPlaidLink() {
+        try {
+            const response = await fetch('/api/plaid/create-link-token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            if (!response.ok) throw new Error('Failed to create link token');
+            const data = await response.json();
+
+            linkHandler = Plaid.create({
+                token: data.link_token,
+                onSuccess: async (publicToken) => {
+                    try {
+                        const exchangeResponse = await fetch('/api/plaid/exchange-token', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ public_token: publicToken })
+                        });
+                        if (!exchangeResponse.ok) throw new Error('Failed to exchange token');
+                        const result = await exchangeResponse.json();
+                        showToast('Account Connected!', `Successfully linked ${result.accounts.length} account(s)`, 'success');
+                        setTimeout(() => location.reload(), 1500);
+                    } catch (error) {
+                        showToast('Connection Failed', error.message, 'error');
+                    }
+                },
+                onExit: (err) => {
+                    if (err) showToast('Connection Cancelled', err.display_message || 'Please try again', 'error');
+                }
+            });
+        } catch (error) {
+            showToast('Initialization Error', 'Failed to initialize bank connection', 'error');
+        }
+    }
+
+    document.getElementById('connect-bank-btn')?.addEventListener('click', async () => {
+        if (!linkHandler) await initPlaidLink();
+        if (linkHandler) linkHandler.open();
+    });
+
+    document.getElementById('connect-first-btn')?.addEventListener('click', async () => {
+        if (!linkHandler) await initPlaidLink();
+        if (linkHandler) linkHandler.open();
+    });
+
+    initPlaidLink();
+</script>
+{% endblock %}

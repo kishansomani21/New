@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="px-4 py-12 sm:px-0">
+    <!-- Hero Section -->
+    <div class="text-center mb-16">
+        <h1 class="text-5xl font-bold mb-6">
+            <span class="gradient-text">Connect Your Bank</span>
+            <br>
+            <span class="text-white">With Confidence</span>
+        </h1>
+        <p class="text-xl text-gray-400 max-w-2xl mx-auto mb-8">
+            Securely link your bank accounts and view your transactions in one place.
+            Powered by Plaid for bank-level security.
+        </p>
+        <button
+            id="connect-bank-btn"
+            class="px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg text-lg hover:from-purple-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg"
+        >
+            Connect Your Bank Account
+        </button>
+    </div>
+
+    <!-- Features Section -->
+    <div class="grid md:grid-cols-3 gap-8 mt-16">
+        <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+            <div class="w-12 h-12 bg-purple-900 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Bank-Level Security</h3>
+            <p class="text-gray-400">Your credentials are never stored. We use Plaid's encrypted connections to securely access your data.</p>
+        </div>
+
+        <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+            <div class="w-12 h-12 bg-indigo-900 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Real-Time Data</h3>
+            <p class="text-gray-400">View your transactions and balances in real-time. Stay on top of your finances with up-to-date information.</p>
+        </div>
+
+        <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+            <div class="w-12 h-12 bg-pink-900 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Multiple Accounts</h3>
+            <p class="text-gray-400">Connect checking, savings, credit cards, and more. All your accounts in one unified dashboard.</p>
+        </div>
+    </div>
+
+    <!-- Supported Banks -->
+    <div class="mt-20 text-center">
+        <h2 class="text-2xl font-semibold mb-8 text-gray-300">Supports 12,000+ Financial Institutions</h2>
+        <div class="flex justify-center items-center space-x-12 opacity-50">
+            <span class="text-2xl font-bold text-gray-500">Chase</span>
+            <span class="text-2xl font-bold text-gray-500">Bank of America</span>
+            <span class="text-2xl font-bold text-gray-500">Wells Fargo</span>
+            <span class="text-2xl font-bold text-gray-500">Citi</span>
+            <span class="text-2xl font-bold text-gray-500">+ More</span>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="fixed bottom-4 right-4 bg-gray-800 border border-gray-700 rounded-lg p-4 shadow-xl hidden animate-fadeIn">
+    <div class="flex items-center">
+        <div id="toast-icon" class="mr-3"></div>
+        <div>
+            <p id="toast-title" class="font-semibold"></p>
+            <p id="toast-message" class="text-sm text-gray-400"></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let linkHandler = null;
+
+    // Show toast notification
+    function showToast(title, message, type = 'success') {
+        const toast = document.getElementById('toast');
+        const toastTitle = document.getElementById('toast-title');
+        const toastMessage = document.getElementById('toast-message');
+        const toastIcon = document.getElementById('toast-icon');
+
+        toastTitle.textContent = title;
+        toastMessage.textContent = message;
+
+        if (type === 'success') {
+            toastIcon.innerHTML = '<svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+        } else {
+            toastIcon.innerHTML = '<svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+        }
+
+        toast.classList.remove('hidden');
+        setTimeout(() => {
+            toast.classList.add('hidden');
+        }, 5000);
+    }
+
+    // Initialize Plaid Link
+    async function initPlaidLink() {
+        try {
+            const response = await fetch('/api/plaid/create-link-token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create link token');
+            }
+
+            const data = await response.json();
+
+            linkHandler = Plaid.create({
+                token: data.link_token,
+                onSuccess: async (publicToken, metadata) => {
+                    console.log('Plaid Link success:', metadata);
+
+                    try {
+                        const exchangeResponse = await fetch('/api/plaid/exchange-token', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ public_token: publicToken })
+                        });
+
+                        if (!exchangeResponse.ok) {
+                            throw new Error('Failed to exchange token');
+                        }
+
+                        const result = await exchangeResponse.json();
+                        showToast(
+                            'Account Connected!',
+                            `Successfully linked ${result.accounts.length} account(s)`,
+                            'success'
+                        );
+
+                        // Redirect to dashboard after a short delay
+                        setTimeout(() => {
+                            window.location.href = '/dashboard';
+                        }, 1500);
+
+                    } catch (error) {
+                        console.error('Exchange error:', error);
+                        showToast('Connection Failed', error.message, 'error');
+                    }
+                },
+                onExit: (err, metadata) => {
+                    if (err) {
+                        console.error('Plaid Link error:', err);
+                        showToast('Connection Cancelled', err.display_message || 'Please try again', 'error');
+                    }
+                },
+                onEvent: (eventName, metadata) => {
+                    console.log('Plaid event:', eventName, metadata);
+                }
+            });
+
+        } catch (error) {
+            console.error('Failed to initialize Plaid Link:', error);
+            showToast('Initialization Error', 'Failed to initialize bank connection', 'error');
+        }
+    }
+
+    // Connect bank button handler
+    document.getElementById('connect-bank-btn').addEventListener('click', async () => {
+        if (!linkHandler) {
+            await initPlaidLink();
+        }
+        if (linkHandler) {
+            linkHandler.open();
+        }
+    });
+
+    // Initialize on page load
+    initPlaidLink();
+</script>
+{% endblock %}

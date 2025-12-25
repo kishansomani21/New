@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="px-4 py-6 sm:px-0">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold">Transactions</h1>
+            <p class="text-gray-400 mt-1">All transactions across your accounts</p>
+        </div>
+        <div class="flex items-center space-x-4">
+            <select id="account-filter" class="bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <option value="">All Accounts</option>
+                {% for account in accounts %}
+                <option value="{{ account.id }}">{{ account.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Transactions Table -->
+    <div class="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+        {% if transactions | length > 0 %}
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-750 border-b border-gray-700">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Date</th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Description</th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Category</th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Account</th>
+                        <th class="px-6 py-4 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">Amount</th>
+                        <th class="px-6 py-4 text-center text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700">
+                    {% for transaction in transactions %}
+                    <tr class="hover:bg-gray-750 transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm text-gray-300">{{ transaction.date }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div>
+                                <p class="font-medium text-white">{{ transaction.name }}</p>
+                                {% if transaction.merchant_name %}
+                                <p class="text-sm text-gray-400">{{ transaction.merchant_name }}</p>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if transaction.category %}
+                            <span class="px-3 py-1 text-xs font-medium bg-gray-700 rounded-full text-gray-300">
+                                {{ transaction.category }}
+                            </span>
+                            {% else %}
+                            <span class="text-gray-500">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm text-gray-300">{{ transaction.account_name | default(value="Unknown") }}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right">
+                            <span class="font-semibold {% if transaction.amount > 0 %}text-red-400{% else %}text-green-400{% endif %}">
+                                {% if transaction.amount > 0 %}-{% else %}+{% endif %}${{ "%.2f" | format(transaction.amount | abs) }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            {% if transaction.pending %}
+                            <span class="px-2 py-1 text-xs font-medium bg-yellow-900 text-yellow-300 rounded-full">Pending</span>
+                            {% else %}
+                            <span class="px-2 py-1 text-xs font-medium bg-green-900 text-green-300 rounded-full">Posted</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="px-6 py-4 border-t border-gray-700 flex items-center justify-between">
+            <p class="text-sm text-gray-400">
+                Showing {{ transactions | length }} transactions
+            </p>
+            <div class="flex space-x-2">
+                <button class="px-4 py-2 bg-gray-700 rounded-lg text-sm hover:bg-gray-600 transition-colors disabled:opacity-50" disabled>
+                    Previous
+                </button>
+                <button class="px-4 py-2 bg-gray-700 rounded-lg text-sm hover:bg-gray-600 transition-colors">
+                    Next
+                </button>
+            </div>
+        </div>
+        {% else %}
+        <div class="p-12 text-center">
+            <div class="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">No Transactions Yet</h3>
+            <p class="text-gray-400 mb-6">Connect a bank account and sync to see your transactions</p>
+            <a href="/dashboard" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg inline-block hover:from-purple-700 hover:to-indigo-700 transition-all">
+                Go to Dashboard
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Account filter functionality
+    document.getElementById('account-filter').addEventListener('change', function() {
+        const accountId = this.value;
+        if (accountId) {
+            window.location.href = `/transactions/${accountId}`;
+        } else {
+            window.location.href = '/transactions';
+        }
+    });
+</script>
+{% endblock %}
